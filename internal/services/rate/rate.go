@@ -15,6 +15,8 @@ import (
 )
 
 // New returns a new server
+// It takes an opentracing.Tracer as a parameter. It initializes the server with
+// a new tracer and loads the rate table from the JSON file "data/inventory.json".
 func New(tr opentracing.Tracer) *Rate {
 	return &Rate{
 		tracer:    tr,
@@ -46,6 +48,9 @@ func (s *Rate) Run(port int) error {
 }
 
 // GetRates gets rates for hotels for specific date range.
+// It takes a context and a rate.Request as input and returns a rate.Result and an error.
+// It iterates over the hotel IDs in the request and checks if there is a corresponding
+// rate plan in the rate table for the specified stay (hotel ID, in date, and out date).
 func (s *Rate) GetRates(ctx context.Context, req *rate.Request) (*rate.Result, error) {
 	res := new(rate.Result)
 
@@ -64,6 +69,10 @@ func (s *Rate) GetRates(ctx context.Context, req *rate.Request) (*rate.Result, e
 }
 
 // loadRates loads rate codes from JSON file.
+// It reads the file contents using data.MustAsset, unmarshals the JSON data into a
+// slice of rate.RatePlan structs, and builds a rate table map where the key is a
+// stay struct (combination of hotel ID, in date, and out date) and the value is the
+// corresponding rate plan.
 func loadRateTable(path string) map[stay]*rate.RatePlan {
 	file := data.MustAsset(path)
 

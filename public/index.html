@@ -6,12 +6,16 @@
     <link rel="stylesheet" href="/stylesheets/main.css">
 </head>
 <body>
+
     <div id="map"></div>
     <script>
         var points = {};
         points['San Francisco'] = [37.7879, -122.4075]
         points['Los Angeles'] = [37.7879, -122.4075]
+        points['Pittsburgh'] = [40.4515, -79.9530]
 
+        // Inside this function, a new instance of google.maps.InfoWindow is 
+        // created. It represents an info window that can display information on the map.
         function initMap() {
             var infowindow = new google.maps.InfoWindow();
 
@@ -23,6 +27,10 @@
                 )
             });
 
+            // When the map is clicked, the info window is closed. When a feature on the 
+            // map is clicked, the info window's content is set based on the feature's 
+            // properties (name and phone number), and it is displayed at the clicked 
+            // location with a specific offset.
             google.maps.event.addListener(map, 'click', function () {
                 infowindow.close();
             });
@@ -34,9 +42,11 @@
                 infowindow.open(map);
             });
 
+            // Load geoJSON data from the specified URL, which is expected to return 
+            // hotel information for a specific date range
             map.data.loadGeoJson('/hotels?inDate=2015-04-09&outDate=2015-04-10');
         }
     </script>
-    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&callback=initMap" async defer></script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&key=&callback=initMap" async defer></script>
 </body>
 </html>

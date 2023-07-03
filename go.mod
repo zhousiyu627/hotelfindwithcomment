@@ -10,12 +10,14 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/net v0.7.0
 	google.golang.org/grpc v1.51.0
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect

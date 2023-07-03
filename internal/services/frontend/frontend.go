@@ -13,6 +13,9 @@ import (
 )
 
 // New returns a new server
+// It takes an opentracing.Tracer and two *grpc.ClientConn objects (for search and
+// profile services) as parameters and initializes the searchClient, profileClient,
+// and tracer fields of the Frontend struct.
 func New(t opentracing.Tracer, searchconn, profileconn *grpc.ClientConn) *Frontend {
 	return &Frontend{
 		searchClient:  search.NewSearchClient(searchconn),
@@ -28,7 +31,12 @@ type Frontend struct {
 	tracer        opentracing.Tracer
 }
 
-// Run the server
+// Run the server. It takes a port integer as a parameter and starts the server to
+// listen on that port. It creates a new trace.ServeMux using trace.NewServeMux
+// (which is a custom implementation for tracing), and then registers two handlers:
+// one for serving static files from the "public" directory and another for handling
+// requests to the "/hotels" endpoint. Finally, it starts the HTTP server using
+// http.ListenAndServe.
 func (s *Frontend) Run(port int) error {
 	mux := trace.NewServeMux(s.tracer)
 	mux.Handle("/", http.FileServer(http.Dir("public")))
@@ -37,11 +45,17 @@ func (s *Frontend) Run(port int) error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
 
+// HTTP handler that processes requests to the "/hotels" endpoint. It handles incoming
+// requests, performs search and profile operations using the searchClient and
+// profileClient, and returns a JSON-encoded response.
 func (s *Frontend) searchHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	ctx := r.Context()
 
 	// in/out dates from query params
+	// The function retrieves the values of the "inDate" and "outDate" query parameters
+	// from the request URL. If either of these parameters is missing or empty, it returns
+	// a "Bad Request" error with an appropriate error message.
 	inDate, outDate := r.URL.Query().Get("inDate"), r.URL.Query().Get("outDate")
 	if inDate == "" || outDate == "" {
 		http.Error(w, "Please specify inDate/outDate params", http.StatusBadRequest)
@@ -49,10 +63,14 @@ func (s *Frontend) searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// search for best hotels
-	// TODO(hw): allow lat/lon from input params
+	// The function performs a search for the best hotels by calling the Nearby method
+	// of the searchClient (which is a gRPC client for the search service). It passes
+	// the context, latitude, longitude, inDate, and outDate as parameters. If an error
+	// occurs during the search, it returns a "Internal Server Error" response with the
+	// error message.
 	searchResp, err := s.searchClient.Nearby(ctx, &search.NearbyRequest{
-		Lat:     37.7749,
-		Lon:     -122.4194,
+		Lat:     37.7879,
+		Lon:     -122.4075,
 		InDate:  inDate,
 		OutDate: outDate,
 	})
@@ -68,6 +86,10 @@ func (s *Frontend) searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// hotel profiles
+	// The function retrieves the hotel profiles by calling the GetProfiles method
+	// of the profileClient (which is a gRPC client for the profile service). It
+	// passes the context, the hotel IDs obtained from the search response, and the
+	// locale as parameters.
 	profileResp, err := s.profileClient.GetProfiles(ctx, &profile.Request{
 		HotelIds: searchResp.HotelIds,
 		Locale:   locale,

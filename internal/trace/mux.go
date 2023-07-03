@@ -22,6 +22,9 @@ import (
 )
 
 // NewServeMux creates a new TracedServeMux.
+// It takes an opentracing.Tracer as a parameter and initializes the
+// mux field with a new instance of http.ServeMux and sets the tracer
+// field with the provided tracer.
 func NewServeMux(tracer opentracing.Tracer) *TracedServeMux {
 	return &TracedServeMux{
 		mux:    http.NewServeMux(),

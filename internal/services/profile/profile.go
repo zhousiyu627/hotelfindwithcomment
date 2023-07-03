@@ -15,6 +15,7 @@ import (
 )
 
 // New returns a new server
+// It initializes the server with a new tracer and loads the hotel profiles from the JSON file "data/hotels.json"
 func New(tr opentracing.Tracer) *Profile {
 	return &Profile{
 		tracer:   tr,
@@ -46,6 +47,9 @@ func (s *Profile) Run(port int) error {
 }
 
 // GetProfiles returns hotel profiles for requested IDs
+// It takes a context and a profile.Request as input and returns a profile.Result and an error.
+// It iterates over the hotel IDs in the request and retrieves the corresponding hotel profile
+// using the getProfile method. It then adds the profile to the response.
 func (s *Profile) GetProfiles(ctx context.Context, req *profile.Request) (*profile.Result, error) {
 	res := new(profile.Result)
 	for _, id := range req.HotelIds {
@@ -59,6 +63,9 @@ func (s *Profile) getProfile(id string) *profile.Hotel {
 }
 
 // loadProfiles loads hotel profiles from a JSON file.
+// Loads the hotel profiles from a JSON file. It reads the file contents
+// using data.MustAsset, unmarshals the JSON data into a slice of profile.Hotel
+// structs, and builds a map of hotel IDs to profiles.
 func loadProfiles(path string) map[string]*profile.Hotel {
 	var (
 		file   = data.MustAsset(path)

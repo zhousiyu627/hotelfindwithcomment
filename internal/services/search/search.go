@@ -15,6 +15,9 @@ import (
 )
 
 // New returns a new server
+// It takes an opentracing.Tracer and two gRPC client connections (geoconn and rateconn)
+// as parameters. It initializes the server with new client instances
+// for the geo and rate services and sets the tracer.
 func New(t opentracing.Tracer, geoconn, rateconn *grpc.ClientConn) *Search {
 	return &Search{
 		geoClient:  geo.NewGeoClient(geoconn),
@@ -47,6 +50,7 @@ func (s *Search) Run(port int) error {
 }
 
 // Nearby returns ids of nearby hotels ordered by ranking algo
+// It takes a context and a search.NearbyRequest as input and returns a search.SearchResult and an error
 func (s *Search) Nearby(ctx context.Context, req *search.NearbyRequest) (*search.SearchResult, error) {
 	// find nearby hotels
 	nearby, err := s.geoClient.Nearby(ctx, &geo.Request{

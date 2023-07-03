@@ -32,7 +32,9 @@ func (p *point) Lat() float64 { return p.Plat }
 func (p *point) Lon() float64 { return p.Plon }
 func (p *point) Id() string   { return p.Pid }
 
-// New returns a new server
+// The New function creates a new Geo server instance. It takes an
+// opentracing.Tracer as a parameter and initializes the server with a
+// new geospatial index (geoidx) created using the newGeoIndex function.
 func New(tr opentracing.Tracer) *Geo {
 	return &Geo{
 		tracer: tr,
@@ -41,12 +43,18 @@ func New(tr opentracing.Tracer) *Geo {
 }
 
 // Server implements the geo service
+// storing the geospatial index
+// tracing requests
 type Geo struct {
 	geoidx *geoindex.ClusteringIndex
 	tracer opentracing.Tracer
 }
 
 // Run starts the server
+// Creates a new gRPC server instance, sets the 'unary interceptor'
+// for tracing using the 'opentracing' package, registers the Geo
+// server implementation with the gRPC server, and starts listening
+// for incoming connections on the specified port.
 func (s *Geo) Run(port int) error {
 	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(
@@ -64,6 +72,10 @@ func (s *Geo) Run(port int) error {
 }
 
 // Nearby returns all hotels within a given distance.
+// It takes a context and a geo.Request as input and returns a geo.Result and an error.
+// It calls the getNearbyPoints method to retrieve the nearby points (hotels) based on
+// the provided latitude and longitude. It populates the HotelIds field of the geo.Result
+// with the IDs of the nearby hotels and returns the result.
 func (s *Geo) Nearby(ctx context.Context, req *geo.Request) (*geo.Result, error) {
 	var (
 		points = s.getNearbyPoints(ctx, float64(req.Lat), float64(req.Lon))
@@ -77,6 +89,10 @@ func (s *Geo) Nearby(ctx context.Context, req *geo.Request) (*geo.Result, error)
 	return res, nil
 }
 
+//	It creates a geoindex.GeoPoint with the given coordinates and calls the KNearest method of
+//
+// the geospatial index (geoidx) to find the nearest points. It specifies the maximum number
+// of search results, the search radius, and a filter function.
 func (s *Geo) getNearbyPoints(ctx context.Context, lat, lon float64) []geoindex.Point {
 	center := &geoindex.GeoPoint{
 		Pid:  "",
@@ -94,6 +110,10 @@ func (s *Geo) getNearbyPoints(ctx context.Context, lat, lon float64) []geoindex.
 }
 
 // newGeoIndex returns a geo index with points loaded
+// The newGeoIndex function creates a new geospatial index (geoindex.ClusteringIndex) and
+// populates it with points (hotels) loaded from a JSON file. It reads the file using
+// data.MustAsset from the go-micro-services/data package, unmarshals the JSON data into
+// a slice of point structs, and adds each point to the index using the Add method.
 func newGeoIndex(path string) *geoindex.ClusteringIndex {
 	var (
 		file   = data.MustAsset(path)
